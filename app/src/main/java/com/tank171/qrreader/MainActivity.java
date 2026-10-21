@@ -6,13 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -60,26 +64,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        buildScreen();
+        showSplash();
+        new Handler(Looper.getMainLooper()).postDelayed(this::buildScreen, 2000);
     }
 
-    private void buildScreen() {
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(24), dp(32), dp(24), dp(24));
-        root.setGravity(Gravity.TOP);
-        root.setBackgroundColor(0xFF071426);
-        scroll.addView(root);
+    private void showSplash() {
+        LinearLayout splash = new LinearLayout(this);
+        splash.setOrientation(LinearLayout.VERTICAL);
+        splash.setGravity(Gravity.CENTER);
+        splash.setPadding(dp(28), dp(28), dp(28), dp(28));
+        splash.setBackgroundColor(0xFF071426);
 
-        TextView logo = new TextView(this);
-        logo.setText("◉  TANK171");
-        logo.setTextColor(0xFF20D9F5);
-        logo.setTextSize(14);
-        logo.setGravity(Gravity.CENTER);
-        logo.setLetterSpacing(0.16f);
-        root.addView(logo, matchWrap());
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.ic_qr_logo);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(132), dp(132));
+        logoParams.bottomMargin = dp(22);
+        splash.addView(logo, logoParams);
 
         TextView title = new TextView(this);
         title.setText("QR Reader 171");
@@ -87,25 +88,77 @@ public class MainActivity extends AppCompatActivity {
         title.setTextSize(28);
         title.setGravity(Gravity.CENTER);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams titleParams = matchWrap();
-        titleParams.topMargin = dp(14);
-        root.addView(title, titleParams);
+        splash.addView(title, matchWrap());
+
+        TextView brand = new TextView(this);
+        brand.setText("Tank171 app");
+        brand.setTextColor(0xFF38DDF8);
+        brand.setTextSize(13);
+        brand.setLetterSpacing(0.08f);
+        brand.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams brandParams = matchWrap();
+        brandParams.topMargin = dp(8);
+        splash.addView(brand, brandParams);
+
+        setContentView(splash);
+    }
+
+    private void buildScreen() {
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(22), dp(24), dp(22), dp(24));
+        root.setGravity(Gravity.TOP);
+        root.setBackgroundColor(0xFF071426);
+        scroll.addView(root);
+
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.ic_qr_logo);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        header.addView(logo, new LinearLayout.LayoutParams(dp(66), dp(66)));
+
+        LinearLayout titleGroup = new LinearLayout(this);
+        titleGroup.setOrientation(LinearLayout.VERTICAL);
+        titleGroup.setPadding(dp(14), 0, 0, 0);
+        titleGroup.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = new TextView(this);
+        title.setText("QR Reader 171");
+        title.setTextColor(0xFFFFFFFF);
+        title.setTextSize(23);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleGroup.addView(title, matchWrap());
+
+        TextView watermark = new TextView(this);
+        watermark.setText("Tank171 app");
+        watermark.setTextColor(0xFF38DDF8);
+        watermark.setTextSize(11);
+        watermark.setLetterSpacing(0.08f);
+        LinearLayout.LayoutParams watermarkParams = matchWrap();
+        watermarkParams.topMargin = dp(3);
+        titleGroup.addView(watermark, watermarkParams);
+
+        header.addView(titleGroup, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        root.addView(header, matchWrap());
 
         TextView subtitle = new TextView(this);
         subtitle.setText("Pindai QR dari kamera atau gambar");
         subtitle.setTextColor(0xFFB8C8D9);
-        subtitle.setTextSize(15);
-        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setTextSize(14);
         LinearLayout.LayoutParams subParams = matchWrap();
-        subParams.topMargin = dp(8);
-        subParams.bottomMargin = dp(28);
+        subParams.topMargin = dp(22);
+        subParams.bottomMargin = dp(22);
         root.addView(subtitle, subParams);
 
-        Button cameraButton = makeButton("Pindai dengan Kamera");
+        Button cameraButton = makeButton("Pindai dengan Kamera", false);
         cameraButton.setOnClickListener(v -> startCameraScan());
         root.addView(cameraButton, buttonParams());
 
-        Button galleryButton = makeButton("Pilih Gambar dari Galeri");
+        Button galleryButton = makeButton("Pilih Gambar dari Galeri", true);
         galleryButton.setOnClickListener(v -> galleryPicker.launch("image/*"));
         LinearLayout.LayoutParams galleryParams = buttonParams();
         galleryParams.topMargin = dp(12);
@@ -113,11 +166,11 @@ public class MainActivity extends AppCompatActivity {
 
         TextView resultHeading = new TextView(this);
         resultHeading.setText("HASIL PEMINDAIAN");
-        resultHeading.setTextColor(0xFF20D9F5);
+        resultHeading.setTextColor(0xFF38DDF8);
         resultHeading.setTextSize(12);
         resultHeading.setLetterSpacing(0.12f);
         LinearLayout.LayoutParams headingParams = matchWrap();
-        headingParams.topMargin = dp(30);
+        headingParams.topMargin = dp(28);
         headingParams.bottomMargin = dp(10);
         root.addView(resultHeading, headingParams);
 
@@ -127,17 +180,21 @@ public class MainActivity extends AppCompatActivity {
         resultText.setTextSize(16);
         resultText.setTextIsSelectable(true);
         resultText.setPadding(dp(16), dp(16), dp(16), dp(16));
-        resultText.setBackgroundColor(0xFF10243A);
+        GradientDrawable resultBackground = new GradientDrawable();
+        resultBackground.setColor(0xFF10243A);
+        resultBackground.setCornerRadius(dp(16));
+        resultBackground.setStroke(dp(1), 0xFF244663);
+        resultText.setBackground(resultBackground);
         root.addView(resultText, matchWrap());
 
-        copyButton = makeButton("Salin");
+        copyButton = makeButton("Salin Hasil", true);
         copyButton.setEnabled(false);
         copyButton.setOnClickListener(v -> copyResult());
         LinearLayout.LayoutParams copyParams = buttonParams();
         copyParams.topMargin = dp(12);
         root.addView(copyButton, copyParams);
 
-        openButton = makeButton("Buka Tautan");
+        openButton = makeButton("Buka Tautan", false);
         openButton.setVisibility(View.GONE);
         openButton.setOnClickListener(v -> openLink());
         LinearLayout.LayoutParams openParams = buttonParams();
@@ -145,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         root.addView(openButton, openParams);
 
         TextView footer = new TextView(this);
-        footer.setText("Tautan tidak akan dibuka otomatis.");
+        footer.setText("Tautan hanya dibuka saat kamu menekan tombol.");
         footer.setTextColor(0xFF8FA6BC);
         footer.setTextSize(12);
         footer.setGravity(Gravity.CENTER);
@@ -244,13 +301,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Button makeButton(String text) {
+    private Button makeButton(String text, boolean secondary) {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextSize(16);
-        button.setTextColor(0xFF071426);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF20D9F5));
+        button.setTextSize(15);
+        button.setTypeface(null, android.graphics.Typeface.BOLD);
+        button.setTextColor(secondary ? 0xFFBDEFFA : 0xFF061526);
+        GradientDrawable background = new GradientDrawable();
+        background.setCornerRadius(dp(16));
+        if (secondary) {
+            background.setColor(0xFF102943);
+            background.setStroke(dp(1), 0xFF23769A);
+        } else {
+            background.setColor(0xFF32D9F5);
+        }
+        button.setBackground(background);
+        button.setBackgroundTintList(null);
+        button.setElevation(dp(2));
         return button;
     }
 
@@ -262,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout.LayoutParams buttonParams() {
         LinearLayout.LayoutParams params = matchWrap();
-        params.height = dp(54);
+        params.height = dp(56);
         return params;
     }
 

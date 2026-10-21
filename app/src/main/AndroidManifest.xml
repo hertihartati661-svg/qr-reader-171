@@ -5,6 +5,8 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/ic_qr_logo"
+        android:roundIcon="@drawable/ic_qr_logo"
         android:label="QR Reader 171"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
